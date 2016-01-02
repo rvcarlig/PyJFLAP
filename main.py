@@ -90,6 +90,8 @@ class DoodleWindow(wx.Window):
         self.currentColour = self.pen_color
         self.lines = []
         self.previousPosition = (0, 0)
+        self.startPos = None
+        self.endPos = None
 
     def bind_events(self):
         for event, handler in [
@@ -144,6 +146,7 @@ class DoodleWindow(wx.Window):
 
         elif self.drawingState == EditorState.DrawTransition:
             click_position = event.GetPositionTuple()
+            print 'here'
             if self.startPos is None:
                 for state in self.states:
                     if state.is_within(click_position):
