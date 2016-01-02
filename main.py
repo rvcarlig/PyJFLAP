@@ -64,7 +64,10 @@ class DoodleWindow(wx.Window):
     def __init__(self, parent):
         super(DoodleWindow, self).__init__(parent, size=(800, 600),
                                            style=wx.NO_FULL_REPAINT_ON_RESIZE)
-        self.states = []
+        self.states = {}
+        self.currentState = 0
+        self.reusableStateNames = []
+        self.stateNames = {}
         self.arcs = []
 
         self.init_drawing()
@@ -142,25 +145,42 @@ class DoodleWindow(wx.Window):
             self.previousPosition = event.GetPositionTuple()
             print self.previousPosition
             new_state = State(event.GetPositionTuple())
-            self.states.append(new_state)
+            state_nb = self.currentState
+            if self.reusableStateNames:
+                state_nb = self.reusableStateNames[0]
+                del self.reusableStateNames[0]
+            else:
+                self.currentState += 1
+            new_state_name = wx.StaticText(self, label = 'q'+str(state_nb), pos=new_state.get_position())
+            self.states[new_state] = state_nb             
+            self.stateNames[state_nb] = new_state_name
 
         elif self.drawingState == EditorState.DrawTransition:
             click_position = event.GetPositionTuple()
-            print 'here'
             if self.startPos is None:
-                for state in self.states:
+                for state in self.states.iterkeys():
                     if state.is_within(click_position):
                         self.startPos = state
                         break
             else:
-                for state in self.states:
+                for state in self.states.iterkeys():
                     if state.is_within(click_position):
                         self.endPos = state
                         break
-                temp_state = filter(lambda x: x.get_position() == self.startPos.get_position(), self.states)
+                temp_state = filter(lambda x: x.get_position() == self.startPos.get_position(), self.states.iterkeys())
                 temp_state[0].add_arc(self.endPos)
                 self.endPos = None
                 self.startPos = None
+        elif self.drawingState == EditorState.Delete:
+            click_position = event.GetPositionTuple()
+            for state, stateNb in self.states.iteritems():
+                    if state.is_within(click_position):
+                        del self.states[state]
+                        self.stateNames[stateNb].Destroy()
+                        del self.stateNames[stateNb]  
+                        self.reusableStateNames.append(stateNb)
+                        self.reusableStateNames.sort()
+                        break
         self.redraw()
 
     def redraw(self):
@@ -172,8 +192,9 @@ class DoodleWindow(wx.Window):
         brush = wx.Brush(self.pen_color, wx.TRANSPARENT)
         dc.SetPen(pen)
         dc.SetBrush(brush)
-        for state in self.states:
+        for state in self.states.iterkeys():
             state.draw(dc)
+        
         dc.EndDrawing()
 
     def on_left_up(self, event):
@@ -183,7 +204,7 @@ class DoodleWindow(wx.Window):
     def on_right_up(self, event):
         click_position = event.GetPositionTuple()
         self.clicked_state = None
-        for state in self.states:
+        for state in self.states.iterkeys():
             if state.is_within(click_position):
                 self.clicked_state = state
                 break
