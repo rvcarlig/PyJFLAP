@@ -195,7 +195,7 @@ class DoodleWindow(wx.Window):
             it is happening. """
         if self.reInitBuffer:
             self.init_buffer()
-            self.Refresh(False)
+            self.redraw()
 
     def on_paint(self, event):
         """ Called when the window is exposed.
