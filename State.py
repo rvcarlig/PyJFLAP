@@ -82,3 +82,6 @@ class State:
 
     def contains_arc(self, arc):
         return arc in self.arcs
+
+    def set_name(self, name):
+        self.state_name = name

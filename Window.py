@@ -1,5 +1,6 @@
 from enum import Enum
 from State import State, StateType
+from helpers import InputWind
 import wx
 
 
@@ -82,17 +83,24 @@ class DoodleWindow(wx.Window):
         file_item = self.menu.Append(wx.NewId(), 'End State', kind=wx.ITEM_CHECK)
         self.Bind(wx.EVT_MENU, self.make_end_state, file_item)
 
+        file_item = self.menu.Append(wx.NewId(), 'Edit State', kind = wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.change_state_name, file_item)
+
+    def change_state_name(self, event):
+        if self.clicked_state is not None:
+            input = InputWind(self)
+            input.Show()
+            print "changing"
+
     def make_start_state(self, event):
         if self.clicked_state is not None:
             self.clicked_state.set_type(StateType.Start)
             self.redraw()
-            print 'make_start_state'
 
     def make_end_state(self, event):
         if self.clicked_state is not None:
             self.clicked_state.set_type(StateType.End)
             self.redraw()
-            print 'make_end_state'
 
     def on_left_down(self, event):
         if self.drawingState == EditorState.DrawCircle:
