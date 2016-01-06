@@ -126,6 +126,10 @@ class DoodleWindow(wx.Window):
             click_position = event.GetPositionTuple()
             for state, stateNb in self.states.iteritems():
                     if state.is_within(click_position):
+                        for state2 in self.states.keys():
+                            if state2.contains_arc(state):                                
+                                self.reusableStateNames.append(self.states[state2])
+                                state2.remove_arc(state)
                         del self.states[state]
                         self.reusableStateNames.append(stateNb)
                         self.reusableStateNames.sort()
