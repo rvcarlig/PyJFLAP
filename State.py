@@ -25,6 +25,10 @@ class State:
 
     def add_arc(self, arc):
         self.arcs.append(arc)
+        
+    def remove_arc(self, arc):
+        if arc in self.arcs:
+            self.arcs.remove(arc)
 
     def draw(self, dc):
         brush = wx.Brush('White', wx.SOLID)
