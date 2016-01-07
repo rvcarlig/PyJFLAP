@@ -19,7 +19,6 @@ class State:
         self.arcs = collections.OrderedDict()
         self.selected = False
         self.state_name = state_name
-        self.up = True
 
     def set_type(self, state_type):
         self.type = state_type
@@ -52,18 +51,12 @@ class State:
 
         for arc in self.arcs:
             if arc.contains_arc(self):
-                if arc.up:
-                    self.up = False
-                if self.up:
-                    dc.DrawText(self.state_name+'->'+arc.state_name+":"+self.arcs[arc], (self.position[0]+arc.position[0])/2,
-                                (self.position[1]+arc.position[1])/2 + 10)
-                else:
-                    dc.DrawText(self.state_name+'->'+arc.state_name+":"+self.arcs[arc], (self.position[0]+arc.position[0])/2,
-                                (self.position[1]+arc.position[1])/2 - 10)
+                    dc.DrawText(self.state_name+'->'+arc.state_name+":"+self.arcs[arc], (self.position[0])-20, (self.position[1]- 100))
+                    dc.DrawLine(self.position[0], self.position[1], arc.position[0], arc.position[1]-85)
             else:
                 dc.DrawText(self.state_name+'->'+arc.state_name+":"+self.arcs[arc], (self.position[0]+arc.position[0])/2,
                             (self.position[1]+arc.position[1])/2 + 10)
-            dc.DrawLine(self.position[0], self.position[1], arc.position[0], arc.position[1])
+                dc.DrawLine(self.position[0], self.position[1], arc.position[0], arc.position[1])
 
         dc.DrawText(self.state_name, self.position[0], self.position[1])
 
