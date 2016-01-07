@@ -1,6 +1,6 @@
 from enum import Enum
 from State import State, StateType
-from helpers import InputWind
+from helpers import InputWind, TransWind
 import wx
 
 
@@ -126,10 +126,13 @@ class DoodleWindow(wx.Window):
                     if state.is_within(click_position):
                         self.endPos = state
                         break
-                temp_state = filter(lambda x: x.get_position() == self.startPos.get_position(), self.states.iterkeys())
-                temp_state[0].add_arc(self.endPos)
-                self.endPos = None
-                self.startPos = None
+                input = TransWind(self)
+                input.Show()
+                
+                #temp_state = filter(lambda x: x.get_position() == self.startPos.get_position(), self.states.iterkeys())
+                #temp_state[0].add_arc(self.endPos, self.values)
+                #self.endPos = None
+                #self.startPos = None
         elif self.drawingState == EditorState.Delete:
             click_position = event.GetPositionTuple()
             for state, stateNb in self.states.iteritems():
@@ -221,3 +224,6 @@ class DoodleWindow(wx.Window):
         if hasattr(self, "menu"):
             self.menu.Destroy()
             del self.menu
+
+
+        
