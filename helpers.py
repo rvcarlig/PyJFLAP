@@ -10,7 +10,7 @@ class InputWind(wx.Frame):
         self.finish_button = wx.Button(self.panel, label="Finish")
         self.lblname = wx.StaticText(self.panel, label="Your name:")
         self.editname = wx.TextCtrl(self.panel, size=(140, -1))
-        self.editname.SetValue(self.controller.clicked_state.state_name)
+        self.editname.SetValue(self.controller.clicked_state.state_name)        
         self.text_boxes = []
 
         self.windowSizer = wx.BoxSizer()
@@ -19,6 +19,7 @@ class InputWind(wx.Frame):
         self.sizer = wx.GridBagSizer(5, 5)
         self.sizer.Add(self.lblname, (0, 0))
         self.sizer.Add(self.editname, (0, 1))
+        
         i = 1
         for arc in self.controller.clicked_state.arcs:
             label_name = self.controller.clicked_state.state_name+'->'+arc.state_name
@@ -42,7 +43,14 @@ class InputWind(wx.Frame):
         self.finish_button.Bind(wx.EVT_BUTTON, self.on_finish)
 
     def on_update(self, event):
-        self.controller.clicked_state.set_name(self.editname.GetValue())
+        new_name = self.editname.GetValue()
+        state_nb = int(new_name[new_name.index('q') + 1:])
+        if state_nb in self.controller.states.values():
+            return
+        self.controller.reusableStateNames.append(int(self.controller.clicked_state.state_name[self.controller.clicked_state.state_name.index('q') + 1:]))
+        self.controller.states[self.controller.clicked_state] = state_nb
+        
+        self.controller.clicked_state.set_name(new_name)
         i = 0
         for arc in self.controller.clicked_state.arcs:
             print "self.controller.clicked_state.update(arc," + self.text_boxes[i].GetValue() +")"
@@ -85,10 +93,7 @@ class TransWind(wx.Frame):
 
     def on_finish(self, event):
         temp_state = filter(lambda x: x.get_position() == self.controller.startPos.get_position(), self.controller.states.iterkeys())
-        if self.controller.endPos in temp_state[0].arcs:
-            temp_state[0].add_new_arc_value(self.controller.endPos, self.values.GetValue())
-        else:
-            temp_state[0].add_arc(self.controller.endPos, self.values.GetValue())
+        temp_state[0].add_arc(self.controller.endPos, self.values.GetValue())
         self.controller.endPos = None
         self.controller.startPos = None
         self.controller.redraw()
