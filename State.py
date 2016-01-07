@@ -95,3 +95,5 @@ class State:
     def set_arcValue(self, arc, value):
         self.arcs[arc] = value
 
+    def add_new_arc_value(self, arc, value):
+        self.arcs[arc] = self.arcs[arc] + ", " + value
