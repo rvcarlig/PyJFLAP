@@ -1,5 +1,7 @@
 import wx
 from Window import DoodleWindow
+from helpers import RunWind
+from State import StateType
 
 # noinspection PyAttributeOutsideInit,PyUnusedLocal
 class DoodleFrame(wx.Frame):
@@ -8,7 +10,7 @@ class DoodleFrame(wx.Frame):
                                           size=(800, 640),
                                           style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
         self.setup_menu()
-        doodle = DoodleWindow(self)
+        self.doodle = DoodleWindow(self)
 
     def setup_menu(self):
         menu_bar = wx.MenuBar()
@@ -33,7 +35,7 @@ class DoodleFrame(wx.Frame):
         file_menu = wx.Menu()
         menu_bar.Append(file_menu, '&Input')
 
-        file_item = file_menu.Append(wx.ID_EXIT, 'Run')
+        file_item = file_menu.Append(101, 'Run')
         self.Bind(wx.EVT_MENU, self.on_run, file_item)
         # Convert: convert to DFA
         file_menu = wx.Menu()
@@ -61,7 +63,8 @@ class DoodleFrame(wx.Frame):
         self.Close()
 
     def on_run(self, event):
-        self.Close()
+        input = RunWind(self)
+        input.Show()
 
     def on_convert(self, event):
         self.Close()
@@ -69,8 +72,31 @@ class DoodleFrame(wx.Frame):
     def on_check(self, event):
         if event.GetMenu() == self.check_menu:
             self.Close()
+    
+    def verifyInput(self, inputStr):
+        current_state = None
+        for state in self.doodle.states:
+            if state.type == StateType.Start:
+                current_state = state
+                break
+        else:
+            return "No Start State"
 
+        complete = True
+        
+        for c in inputStr:
+            for arc in current_state.arcs:
+                if c in current_state.arcs[arc]:
+                    current_state = arc
+                    break
+            else:
+                complete = False
 
+        if current_state.type == StateType.End and complete == True:
+            return "Input accepted!"
+        else:
+            return "Input rejected!"
+        
 if __name__ == '__main__':
     app = wx.App()
     frame = DoodleFrame()
