@@ -1,6 +1,7 @@
 from enum import Enum
 from math import sqrt
 import wx
+import collections
 
 
 class StateType(Enum):
@@ -15,7 +16,7 @@ class State:
         self.position = position
         self.type = StateType.Normal
         self.radius = 50
-        self.arcs = []
+        self.arcs = collections.OrderedDict()
         self.selected = False
         self.state_name = state_name
         self.up = True
@@ -23,8 +24,8 @@ class State:
     def set_type(self, state_type):
         self.type = state_type
 
-    def add_arc(self, arc):
-        self.arcs.append(arc)
+    def add_arc(self, arc, value):
+        self.arcs[arc] = value
         
     def remove_arc(self, arc):
         if arc in self.arcs:
@@ -54,13 +55,13 @@ class State:
                 if arc.up:
                     self.up = False
                 if self.up:
-                    dc.DrawText(self.state_name+'->'+arc.state_name, (self.position[0]+arc.position[0])/2,
+                    dc.DrawText(self.state_name+'->'+arc.state_name+":"+self.arcs[arc], (self.position[0]+arc.position[0])/2,
                                 (self.position[1]+arc.position[1])/2 + 10)
                 else:
-                    dc.DrawText(self.state_name+'->'+arc.state_name, (self.position[0]+arc.position[0])/2,
+                    dc.DrawText(self.state_name+'->'+arc.state_name+":"+self.arcs[arc], (self.position[0]+arc.position[0])/2,
                                 (self.position[1]+arc.position[1])/2 - 10)
             else:
-                dc.DrawText(self.state_name+'->'+arc.state_name, (self.position[0]+arc.position[0])/2,
+                dc.DrawText(self.state_name+'->'+arc.state_name+":"+self.arcs[arc], (self.position[0]+arc.position[0])/2,
                             (self.position[1]+arc.position[1])/2 + 10)
             dc.DrawLine(self.position[0], self.position[1], arc.position[0], arc.position[1])
 
@@ -85,3 +86,7 @@ class State:
 
     def set_name(self, name):
         self.state_name = name
+
+    def set_arcValue(self, arc, value):
+        self.arcs[arc] = value
+
