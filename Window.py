@@ -125,10 +125,10 @@ class DoodleWindow(wx.Window):
                 for state in self.states.iterkeys():
                     if state.is_within(click_position):
                         self.endPos = state
+                        input = TransWind(self)
+                        input.Show()
                         break
-                input = TransWind(self)
-                input.Show()
-                
+                               
                 #temp_state = filter(lambda x: x.get_position() == self.startPos.get_position(), self.states.iterkeys())
                 #temp_state[0].add_arc(self.endPos, self.values)
                 #self.endPos = None
