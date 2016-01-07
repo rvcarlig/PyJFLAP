@@ -93,7 +93,10 @@ class TransWind(wx.Frame):
 
     def on_finish(self, event):
         temp_state = filter(lambda x: x.get_position() == self.controller.startPos.get_position(), self.controller.states.iterkeys())
-        temp_state[0].add_arc(self.controller.endPos, self.values.GetValue())
+        if self.controller.endPos in temp_state[0].arcs:
+            temp_state[0].add_new_arc_value(self.controller.endPos, self.values.GetValue())
+        else:
+            temp_state[0].add_arc(self.controller.endPos, self.values.GetValue())
         self.controller.endPos = None
         self.controller.startPos = None
         self.controller.redraw()
