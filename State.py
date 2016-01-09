@@ -20,6 +20,9 @@ class State:
         self.selected = False
         self.state_name = state_name
         self.up = True
+        self.current = False
+        self.bad_input = False
+        self.ok_input = False
          
     def set_type(self, state_type):
         self.type = state_type
@@ -35,6 +38,12 @@ class State:
         brush = wx.Brush('White', wx.SOLID)
         if self.selected:
             brush = wx.Brush('Yellow', wx.SOLID)
+        if self.current:
+            brush = wx.Brush('Grey', wx.SOLID)
+        if self.bad_input:
+            brush = wx.Brush('Red', wx.SOLID)
+        if self.ok_input:
+            brush = wx.Brush('Green', wx.SOLID)
         dc.SetBrush(brush)
         if self.type == StateType.Normal:
             dc.DrawCircle(self.position[0], self.position[1], self.radius)
