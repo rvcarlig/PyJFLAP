@@ -11,6 +11,7 @@ class DoodleFrame(wx.Frame):
                                           style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
         self.setup_menu()
         self.doodle = DoodleWindow(self)
+        self.current_state = None
 
     def setup_menu(self):
         menu_bar = wx.MenuBar()
@@ -63,8 +64,8 @@ class DoodleFrame(wx.Frame):
         self.Close()
 
     def on_run(self, event):
-        input = RunWind(self)
-        input.Show()
+        self.run_win = RunWind(self)
+        self.run_win.Show()
 
     def on_convert(self, event):
         self.Close()
@@ -74,14 +75,14 @@ class DoodleFrame(wx.Frame):
             self.Close()
     
     def verifyInput(self, inputStr):
+        if inputStr == "":
+            return "No input"
         current_state = None
-        for state in self.doodle.states:
-            if state.type == StateType.Start:
-                current_state = state
-                break
-        else:
+        if self.doodle.start_state == None:
             return "No Start State"
-
+        else:
+            current_state = self.doodle.start_state
+            
         complete = True
         
         for c in inputStr:
@@ -96,6 +97,41 @@ class DoodleFrame(wx.Frame):
             return "Input accepted!"
         else:
             return "Input rejected!"
+
+    def sim_step(self, character, isLast):        
+        for arc in self.current_state.arcs:
+            if character in self.current_state.arcs[arc]:
+                self.current_state.current = False
+                self.current_state = arc
+                self.current_state.current = True
+                break
+        else:
+            self.complete = False
+
+        if self.complete == True:
+            if isLast == True:
+                if self.current_state.type == StateType.End:
+                    self.current_state.ok_input = True
+                    self.finish = True
+                    return "Input accepted!"                
+                else:
+                    self.current_state.bad_input = True
+                    self.finish = True
+                    return "Input rejected!"
+            else:
+                return ""
+        else:
+            self.current_state.bad_input = True
+            self.finish = True
+            return "Input rejected!"
+
+    def setup_sim(self):
+        if self.doodle.start_state != None:
+            self.doodle.start_state.current = True
+        self.current_state = self.doodle.start_state
+        self.complete = True
+        self.finish = False
+        self.doodle.redraw()
         
 if __name__ == '__main__':
     app = wx.App()
