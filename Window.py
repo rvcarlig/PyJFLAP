@@ -158,6 +158,9 @@ class DoodleWindow(wx.Window):
                         self.reusableStateNames.append(stateNb)
                         self.reusableStateNames.sort()
                         break
+                    for key in state.arcs.keys():
+                        if state.arcs[key].is_clicked(click_position):
+                            state.remove_arc(key)
         else:
             click_position = event.GetPositionTuple()
             self.selected_state = None
