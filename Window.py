@@ -209,6 +209,10 @@ class DoodleWindow(wx.Window):
         if event.Dragging() and event.LeftIsDown() and self.drawingState == EditorState.Select\
                 and self.selected_state is not None:
             self.selected_state.set_position(event.GetPositionTuple())
+            for state in self.states.iterkeys():
+                for arc in state.arcs.keys():
+                    if arc == self.selected_state:
+                        state.arcs[self.selected_state].change_end_pos(event.GetPositionTuple())
             self.redraw()
 
     def on_size(self, event):
