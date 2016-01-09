@@ -31,6 +31,8 @@ class DoodleWindow(wx.Window):
         self.bind_events()
         self.init_buffer()
 
+        self.start_state = None
+
     def setup_buttons(self):
         wx.Button(self, 1, 'Select', (0, 0), (100, 40))
         wx.Button(self, 2, 'Draw State', (100, 0), (100, 40))
@@ -95,6 +97,7 @@ class DoodleWindow(wx.Window):
     def make_start_state(self, event):
         if self.clicked_state is not None:
             self.clicked_state.set_type(StateType.Start)
+            self.start_state = self.clicked_state
             self.redraw()
 
     def make_end_state(self, event):
