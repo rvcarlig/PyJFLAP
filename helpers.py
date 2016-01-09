@@ -21,11 +21,11 @@ class InputWind(wx.Frame):
         self.sizer.Add(self.editname, (0, 1))
         
         i = 1
-        for arc in self.controller.clicked_state.arcs:
+        for arc in self.controller.clicked_state.arcs.iterkeys():
             label_name = self.controller.clicked_state.state_name+'->'+arc.state_name
             self.sizer.Add(wx.StaticText(self.panel, label=label_name+":"), (i, 0))
             new_text_box = wx.TextCtrl(self.panel, size=(140, -1))
-            new_text_box.SetValue(self.controller.clicked_state.arcs[arc])
+            new_text_box.SetValue(self.controller.clicked_state.arcs[arc].get_value()[self.controller.clicked_state.arcs[arc].get_value().index(':') + 1:])
             self.text_boxes.append(new_text_box)
             self.sizer.Add(new_text_box, (i, 1))
             i += 1
@@ -52,7 +52,7 @@ class InputWind(wx.Frame):
         
         self.controller.clicked_state.set_name(new_name)
         i = 0
-        for arc in self.controller.clicked_state.arcs:
+        for arc in self.controller.clicked_state.arcs.iterkeys():
             self.controller.clicked_state.set_arcValue(arc, self.text_boxes[i].GetValue())
             i += 1
         self.controller.redraw()
@@ -92,10 +92,13 @@ class TransWind(wx.Frame):
 
     def on_finish(self, event):
         temp_state = filter(lambda x: x.get_position() == self.controller.startPos.get_position(), self.controller.states.iterkeys())
+        temp_trans = self.controller.startPos.state_name+'->'+temp_state[0].state_name+":"+self.values.GetValue()
         if self.controller.endPos in temp_state[0].arcs:
-            temp_state[0].add_new_arc_value(self.controller.endPos, self.values.GetValue())
+            #temp_state[0].add_new_arc_value(self.controller.endPos, self.values.GetValue())
+            temp_state[0].add_new_arc_value(self.controller.endPos, temp_trans)
         else:
-            temp_state[0].add_arc(self.controller.endPos, self.values.GetValue())
+            #temp_state[0].add_arc(self.controller.endPos, self.values.GetValue())
+            temp_state[0].add_arc(self.controller.endPos, temp_trans)
         self.controller.endPos = None
         self.controller.startPos = None
         self.controller.redraw()
