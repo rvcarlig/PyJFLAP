@@ -55,13 +55,23 @@ class DoodleFrame(wx.Frame):
         self.Close()
 
     def on_new(self, event):
-        self.Close()
+        self.doodle.clear()
 
     def on_open(self, event):
-        self.Close()
+        open_file_dialog = wx.FileDialog(self, "Open", "", "",
+                                         "Python files (*.py)|*.py",
+                                         wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        open_file_dialog.ShowModal()
+        self.doodle.load(open_file_dialog.GetPath())
+        open_file_dialog.Destroy()
 
     def on_save(self, event):
-        self.Close()
+        save_file_dialog = wx.FileDialog(self, "Save As", "", "",
+                                         "Python files (*.py)|*.py",
+                                         wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        save_file_dialog.ShowModal()
+        self.doodle.save(save_file_dialog.GetPath())
+        save_file_dialog.Destroy()
 
     def on_run(self, event):
         self.run_win = RunWind(self)

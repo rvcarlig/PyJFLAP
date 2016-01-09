@@ -53,7 +53,6 @@ class InputWind(wx.Frame):
         self.controller.clicked_state.set_name(new_name)
         i = 0
         for arc in self.controller.clicked_state.arcs:
-            print "self.controller.clicked_state.update(arc," + self.text_boxes[i].GetValue() +")"
             self.controller.clicked_state.set_arcValue(arc, self.text_boxes[i].GetValue())
             i += 1
         self.controller.redraw()

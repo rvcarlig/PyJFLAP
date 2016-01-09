@@ -9,21 +9,27 @@ class StateType(Enum):
     Start = 1
     End = 2
 
+    def __str__(self):
+        return str(self.value)
+
 
 class State:
 
-    def __init__(self, position, state_name):
+    def __init__(self, position, state_name, radius=50, selected=False, up=True):
         self.position = position
         self.type = StateType.Normal
-        self.radius = 50
+        self.radius = radius
         self.arcs = collections.OrderedDict()
-        self.selected = False
+        self.selected = selected
         self.state_name = state_name
-        self.up = True
+        self.up = up
         self.current = False
         self.bad_input = False
         self.ok_input = False
-         
+
+    def __str__(self):
+        return self.state_name
+
     def set_type(self, state_type):
         self.type = state_type
 
@@ -80,7 +86,7 @@ class State:
             dc.DrawLine(self.position[0], self.position[1], arc.position[0], arc.position[1])
 
         dc.DrawText(self.state_name, self.position[0], self.position[1])
-            
+
     def set_selected(self, selected):
         self.selected = selected
 

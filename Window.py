@@ -2,6 +2,7 @@ from enum import Enum
 from State import State, StateType
 from helpers import InputWind, TransWind
 import wx
+import json
 
 
 class EditorState(Enum):
@@ -32,6 +33,18 @@ class DoodleWindow(wx.Window):
         self.init_buffer()
 
         self.start_state = None
+
+    def clear(self):
+        self.states.clear()
+        self.arcs = []
+        self.stateNames.clear()
+        self.reusableStateNames = []
+        self.currentState = 0
+        assert len(self.states) == 0
+        assert len(self.arcs) == 0
+        assert len(self.stateNames) == 0
+        assert len(self.reusableStateNames) == 0
+        self.redraw()
 
     def setup_buttons(self):
         wx.Button(self, 1, 'Select', (0, 0), (100, 40))
@@ -74,7 +87,6 @@ class DoodleWindow(wx.Window):
         self.reInitBuffer = False
 
     def change_state(self, event):
-        print event.GetId()
         self.drawingState = EditorState(event.GetId() - 1)
 
     def make_menu(self):
@@ -92,7 +104,6 @@ class DoodleWindow(wx.Window):
         if self.clicked_state is not None:
             input = InputWind(self)
             input.Show()
-            print "changing"
 
     def make_start_state(self, event):
         if self.clicked_state is not None:
@@ -108,7 +119,6 @@ class DoodleWindow(wx.Window):
     def on_left_down(self, event):
         if self.drawingState == EditorState.DrawCircle:
             self.previousPosition = event.GetPositionTuple()
-            print self.previousPosition
             state_nb = self.currentState
             if self.reusableStateNames:
                 state_nb = self.reusableStateNames[0]
@@ -228,5 +238,53 @@ class DoodleWindow(wx.Window):
             self.menu.Destroy()
             del self.menu
 
+    def save(self, path):
+        if len(path) > 0:
+            with open(path, 'w') as outfile:
+                    json.dump(
+                            {
+                                'states':
+                                    [
+                                        {
+                                            'state_name': state.state_name,
+                                            'type': str(state.type),
+                                            'radius': state.radius,
+                                            'selected': state.selected,
+                                            'position': state.position,
+                                            'up': state.up,
+                                            'key': key_state
+                                        }
+                                        for state,key_state in self.states
+                                    ],
+                                'arcs':
+                                    [
+                                        {
+                                            'start': str(state),
+                                            'end': str(key),
+                                            'values': values
+                                        }
+                                        for state in self.states
+                                        for key, values in state.arcs.items()
+                                    ]
+                            }, fp=outfile, indent=4, sort_keys=False)
 
-        
+    def load(self, path):
+        if len(path) > 0:
+            self.clear()
+            with open(path, 'r') as infile:
+                data = json.load(infile)
+            for state in data["states"]:
+                new_state = State(position=state["position"], state_name=state["state_name"],
+                                  radius=state["radius"], selected=state["selected"], up=state["up"])
+                self.states[new_state] = state["key"]
+            for arc in data['arcs']:
+
+                self.get_state_by_name(self.states, arc['start']).\
+                    add_arc(self.get_state_by_name(self.states, arc['end']), arc['values'])
+            self.redraw()
+
+    @staticmethod
+    def get_state_by_name(seq, value):
+        for el in seq:
+            if el.state_name == value:
+                return el
