@@ -35,17 +35,14 @@ class State:
         self.type = state_type
 
     def add_arc(self, arc, value):
-        is_up =  False
-        for a in self.arcs.iterkeys():
-            if a.contains_arc(self):
-                if self.arcs[a].get_is_up():
-                    is_up = False
-                    break
+        up =  True
+        if arc.contains_arc(self):
+            up = False
         new_trans = None
         if arc == self:
-            new_trans = Transition(self.position, self.position, value, True, is_up)
+            new_trans = Transition(self.position, self.position, value, True, up)
         else:
-            new_trans = Transition(self.position, arc.position, value, False, is_up)
+            new_trans = Transition(self.position, arc.position, value, False, up)
         self.arcs[arc] = new_trans
         
     def remove_arc(self, arc):
@@ -122,7 +119,7 @@ class State:
         return distance < self.radius
 
     def contains_arc(self, arc):
-        return arc in self.arcs.keys()
+        return arc in self.arcs.iterkeys()
 
     def set_name(self, name):
         self.state_name = name
