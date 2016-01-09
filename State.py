@@ -2,7 +2,7 @@ from enum import Enum
 from math import sqrt
 import wx
 import collections
-
+from Transition import Transition
 
 class StateType(Enum):
     Normal = 0
@@ -19,10 +19,11 @@ class State:
         self.position = position
         self.type = StateType.Normal
         self.radius = radius
-        self.arcs = collections.OrderedDict()
+        #self.arcs = collections.OrderedDict()
+        self.arcs = {}
         self.selected = selected
         self.state_name = state_name
-        self.up = up
+        #self.up = up
         self.current = False
         self.bad_input = False
         self.ok_input = False
@@ -34,11 +35,23 @@ class State:
         self.type = state_type
 
     def add_arc(self, arc, value):
-        self.arcs[arc] = value
+        is_up =  False
+        for a in self.arcs.iterkeys():
+            if a.contains_arc(self):
+                if self.arcs[a].get_is_up():
+                    is_up = False
+                    break
+        new_trans = None
+        if arc == self:
+            new_trans = Transition(self.position, self.position, value, True, is_up)
+        else:
+            new_trans = Transition(self.position, arc.position, value, False, is_up)
+        self.arcs[arc] = new_trans
         
     def remove_arc(self, arc):
-        if arc in self.arcs:
-            self.arcs.remove(arc)
+        if arc in self.arcs.iterkeys():
+            #self.arcs.remove(arc)
+            del self.arcs[arc]
 
     def draw(self, dc):
         brush = wx.Brush('White', wx.SOLID)
@@ -65,8 +78,8 @@ class State:
             dc.DrawLine(self.position[0]-2*self.radius, self.position[1]+self.radius,
                         self.position[0]-self.radius, self.position[1])
 
-        for arc in self.arcs:
-            if arc.contains_arc(self):
+        for arc in self.arcs.itervalues():
+            '''if arc.contains_arc(self):
                 if arc == self:
                     dc.DrawText(self.state_name+'->'+arc.state_name+":"+self.arcs[arc], (self.position[0])-20, (self.position[1]- 100))
                     dc.DrawLine(self.position[0], self.position[1], arc.position[0], arc.position[1]-85)
@@ -84,7 +97,12 @@ class State:
                 dc.DrawText(self.state_name+'->'+arc.state_name+":"+self.arcs[arc], (self.position[0]+arc.position[0])/2,
                             (self.position[1]+arc.position[1])/2 + 10)
             dc.DrawLine(self.position[0], self.position[1], arc.position[0], arc.position[1])
-
+            '''            
+            dc.DrawText(arc.get_value(), arc.get_value_pos()[0], arc.get_value_pos()[1])
+            if arc.is_self_trans():
+                dc.DrawLine(arc.get_start_pos()[0], arc.get_start_pos()[1], arc.get_end_pos()[0], arc.get_end_pos()[1]-85)
+            else:
+                dc.DrawLine(arc.get_start_pos()[0], arc.get_start_pos()[1], arc.get_end_pos()[0], arc.get_end_pos()[1])
         dc.DrawText(self.state_name, self.position[0], self.position[1])
 
     def set_selected(self, selected):
@@ -92,6 +110,8 @@ class State:
 
     def set_position(self, position):
         self.position = position
+        for arc in self.arcs.iterkeys():
+            self.arcs[arc].change_start_pos(position)
 
     def get_position(self):
         return self.position
@@ -102,13 +122,14 @@ class State:
         return distance < self.radius
 
     def contains_arc(self, arc):
-        return arc in self.arcs
+        return arc in self.arcs.keys()
 
     def set_name(self, name):
         self.state_name = name
 
     def set_arcValue(self, arc, value):
-        self.arcs[arc] = value
+        self.arcs[arc].change_arc_value(value)
 
     def add_new_arc_value(self, arc, value):
-        self.arcs[arc] = self.arcs[arc] + ", " + value
+        #self.arcs[arc] = self.arcs[arc] + ", " + value
+        self.arcs[arc].add_new_arc_value(value)
