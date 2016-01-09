@@ -254,7 +254,7 @@ class DoodleWindow(wx.Window):
                                             'up': state.up,
                                             'key': key_state
                                         }
-                                        for state,key_state in self.states
+                                        for state, key_state in self.states.items()
                                     ],
                                 'arcs':
                                     [

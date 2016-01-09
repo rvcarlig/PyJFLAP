@@ -143,7 +143,7 @@ class RunWind(wx.Frame):
 
     def on_run(self, event):
         self.resultlbl.SetLabel("Running...")
-        self.resultlbl.SetLabel(self.controller.verifyInput(self.input.GetValue()))
+        self.resultlbl.SetLabel(self.controller.verify_input(self.input.GetValue()))
 
     def on_simulation(self, event):
         self.controller.setup_sim()

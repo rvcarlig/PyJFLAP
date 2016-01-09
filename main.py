@@ -3,6 +3,7 @@ from Window import DoodleWindow
 from helpers import RunWind
 from State import StateType
 
+
 # noinspection PyAttributeOutsideInit,PyUnusedLocal
 class DoodleFrame(wx.Frame):
     def __init__(self, parent=None):
@@ -84,18 +85,18 @@ class DoodleFrame(wx.Frame):
         if event.GetMenu() == self.check_menu:
             self.Close()
     
-    def verifyInput(self, inputStr):
-        if inputStr == "":
+    def verify_input(self, input_str):
+        if input_str == "":
             return "No input"
         current_state = None
-        if self.doodle.start_state == None:
+        if self.doodle.start_state is None:
             return "No Start State"
         else:
             current_state = self.doodle.start_state
             
         complete = True
         
-        for c in inputStr:
+        for c in input_str:
             for arc in current_state.arcs:
                 if c in current_state.arcs[arc]:
                     current_state = arc
@@ -108,7 +109,7 @@ class DoodleFrame(wx.Frame):
         else:
             return "Input rejected!"
 
-    def sim_step(self, character, isLast):        
+    def sim_step(self, character, is_last):
         for arc in self.current_state.arcs:
             if character in self.current_state.arcs[arc]:
                 self.current_state.current = False
@@ -118,8 +119,8 @@ class DoodleFrame(wx.Frame):
         else:
             self.complete = False
 
-        if self.complete == True:
-            if isLast == True:
+        if self.complete:
+            if is_last:
                 if self.current_state.type == StateType.End:
                     self.current_state.ok_input = True
                     self.finish = True
@@ -136,7 +137,7 @@ class DoodleFrame(wx.Frame):
             return "Input rejected!"
 
     def setup_sim(self):
-        if self.doodle.start_state != None:
+        if self.doodle.start_state is not None:
             self.doodle.start_state.current = True
         self.current_state = self.doodle.start_state
         self.complete = True
