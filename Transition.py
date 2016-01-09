@@ -31,14 +31,14 @@ class Transition:
         
     def update_value_pos(self):
         if self.same_state:
-            self.valuePos[0] = self.start_position[0]-20
-            self.valuePos[1] = self.start_position[1]- 100
+            self.valuePos[0] = self.start_position[0] - 20
+            self.valuePos[1] = self.start_position[1] - 100
         elif self.up:
             self.valuePos[0] = (self.start_position[0]+self.end_position[0])/2
-            self.valuePos[1] = (self.start_position[1]+self.end_position[1])/2 + 10
+            self.valuePos[1] = (self.start_position[1]+self.end_position[1])/2 - 10
         else:
             self.valuePos[0] = (self.start_position[0]+self.end_position[0])/2
-            self.valuePos[1] = (self.start_position[1]+self.end_position[1])/2 - 10
+            self.valuePos[1] = (self.start_position[1]+self.end_position[1])/2 + 10
             
     def get_value(self):
         return self.value
@@ -52,8 +52,11 @@ class Transition:
     def get_end_pos(self):
         return self.end_position
         
-    def get_is_up(self):
-        return self.up
-        
     def is_self_trans(self):
         return (self.start_position == self.end_position)
+        
+    def is_clicked(self, pos):
+        if (self.valuePos[0] < pos[0] < self.valuePos[0]+50):
+            if (self.valuePos[1]-10 < pos[1] < self.valuePos[1]+10):
+                return True
+        return False
