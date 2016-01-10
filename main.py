@@ -1,6 +1,6 @@
 import wx
 from Window import DoodleWindow
-from helpers import RunWind
+from helpers import RunWind, WarningWind
 from State import StateType
 
 
@@ -79,7 +79,17 @@ class DoodleFrame(wx.Frame):
         self.run_win.Show()
 
     def on_convert(self, event):
-        self.Close()
+        for state in self.doodle.states.iterkeys():
+            if state.type == StateType.Start:
+                break
+        else:
+            wind = WarningWind(self, "Initial state needed!")
+            wind.Show()
+        if not self.doodle.check_nfa():
+            wind = WarningWind(self, "Not a NFA!")
+            wind.Show()
+        else:
+            self.Close()
 
     def on_check(self, event):
         if event.GetMenu() == self.check_menu:
