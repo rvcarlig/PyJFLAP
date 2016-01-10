@@ -119,7 +119,7 @@ class DoodleFrame(wx.Frame):
         
         for c in input_str:
             for arc in current_state.arcs:
-                if c in current_state.arcs[arc]:
+                if c in current_state.arcs[arc].value:
                     current_state = arc
                     break
             else:
@@ -132,7 +132,7 @@ class DoodleFrame(wx.Frame):
 
     def sim_step(self, character, is_last):
         for arc in self.current_state.arcs:
-            if character in self.current_state.arcs[arc]:
+            if character in self.current_state.arcs[arc].value:
                 self.current_state.current = False
                 self.current_state = arc
                 self.current_state.current = True
