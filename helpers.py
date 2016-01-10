@@ -1,4 +1,5 @@
 import wx
+import copy
 
 class DFAWindow(wx.Window):
     pen_color = 'Black'
@@ -10,7 +11,7 @@ class DFAWindow(wx.Window):
                                            
         self.states = {}
         self.nfa_states = nfa_states
-        
+        self.clicked_state = None 
         self.set_initial_state()
         
         self.init_drawing()
@@ -19,11 +20,9 @@ class DFAWindow(wx.Window):
         self.init_buffer()
         
     def set_initial_state(self):
-        print 'was here1'
         for state in self.nfa_states.iterkeys():
-            print 'was here2'
             if state.get_type() == 1:
-                new_state = state
+                new_state = copy.deepcopy(state)
                 new_state.arcs.clear()
                 self.states[new_state] = self.nfa_states[state]
                 break
@@ -81,8 +80,48 @@ class DFAWindow(wx.Window):
             self.CaptureMouse()
         elif self.drawingState == 1:
             click_position = event.GetPositionTuple()
+            self.clicked_state = None
+            for state in self.states.iterkeys():
+                if state.is_within(click_position):
+                    self.clicked_state = state
+                    break
+            if self.clicked_state is not None:
+                self.expand(self.clicked_state)
+                
         self.redraw()
-        
+    
+    def expand(self, state):
+        # find the state in nfa_states
+        for state_in_nfa in self.nfa_states.iterkeys():
+            if state_in_nfa.state_name == self.clicked_state.state_name:
+                # find the states to which the current state has arcs
+                for arc_to_state in self.nfa_states.iterkeys():
+                    print arc_to_state.state_name
+                    if arc_to_state in state_in_nfa.arcs.keys():
+                        # copy the state to be added to dfa
+                        if not state_in_nfa.arcs[arc_to_state].is_lambda_trans():
+                            new_state = copy.deepcopy(arc_to_state)
+                            new_state.arcs.clear()
+                            self.states[new_state] = self.nfa_states[arc_to_state]
+                            self.clicked_state.add_arc(new_state, state_in_nfa.arcs[arc_to_state].get_value())
+                        else:
+                            if len(state_in_nfa.arcs[arc_to_state].get_value()) > 1:
+                                trans = state_in_nfa.arcs[arc_to_state].get_value().split(':', 1) 
+                                trans_values = state_in_nfa.arcs[arc_to_state].get_value()[state_in_nfa.arcs[arc_to_state].get_value().index(':') + 1:].split(',')
+                                new_state = copy.deepcopy(arc_to_state)
+                                new_state.arcs.clear()
+                                self.states[new_state] = self.nfa_states[arc_to_state]
+                                for val in trans_values:
+                                    if val == unichr(955):
+                                        continue;
+                                    else:                                        
+                                        if new_state in self.clicked_state.arcs.iterkeys():
+                                            self.clicked_state.add_new_arc_value(new_state, val)
+                                        else:
+                                            self.clicked_state.add_arc(new_state, trans[0] + ':' + val)
+                                            
+                        
+
     def redraw(self):
         dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
         dc.Clear()
