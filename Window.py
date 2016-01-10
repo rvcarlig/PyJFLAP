@@ -295,3 +295,20 @@ class DoodleWindow(wx.Window):
         for el in seq:
             if el.state_name == value:
                 return el
+                
+    def check_nfa(self):
+        #check each state for nondeterminism
+        for state in self.states.iterkeys():
+            # check for lambda
+            for trans in state.arcs.itervalues():
+                if trans.is_lambda_trans():
+                    return True
+            # Check all transitions against all other transitions to see if any are equal.
+            for arc in state.arcs.iterkeys():
+                for arc2 in state.arcs.iterkeys():
+                    if arc == arc2:
+                        continue
+                    else: 
+                        if state.arcs[arc].check_same_value(state.arcs[arc2]):
+                            return True
+        return False
