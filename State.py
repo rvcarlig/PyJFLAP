@@ -34,6 +34,14 @@ class State:
     def set_type(self, state_type):
         self.type = state_type
 
+    def get_type(self):
+        if self.type == StateType.Start:
+            return 1
+        elif self.type == StateType.End:
+            return 2
+        else: 
+            return 0
+        
     def add_arc(self, arc, value):
         up =  True
         if arc.contains_arc(self):
