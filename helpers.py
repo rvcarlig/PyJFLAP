@@ -1,5 +1,131 @@
 import wx
 
+class DFAWindow(wx.Window):
+    pen_color = 'Black'
+    pen_thickness = 1
+    
+    def __init__(self, nfa_states, parent):
+        super(DFAWindow, self).__init__(parent, size=(800, 600),
+                                           style=wx.NO_FULL_REPAINT_ON_RESIZE)
+                                           
+        self.states = {}
+        self.nfa_states = nfa_states
+        
+        self.set_initial_state()
+        
+        self.init_drawing()
+        self.setup_buttons()
+        self.bind_events()
+        self.init_buffer()
+        
+    def set_initial_state(self):
+        print 'was here1'
+        for state in self.nfa_states.iterkeys():
+            print 'was here2'
+            if state.get_type() == 1:
+                new_state = state
+                new_state.arcs.clear()
+                self.states[new_state] = self.nfa_states[state]
+                break
+                
+    def setup_buttons(self):
+        wx.Button(self, 1, 'Select', (0, 0), (100, 40))
+        self.Bind(wx.EVT_BUTTON, self.select_state, id=1)
+        wx.Button(self, 2, 'Expand', (100, 0), (100, 40))
+        self.Bind(wx.EVT_BUTTON, self.expand_state, id=2)
+    
+    def init_drawing(self):
+        self.drawingState = 0
+        self.SetBackgroundColour('WHITE')
+        self.currentThickness = self.pen_thickness
+        self.currentColour = self.pen_color
+        self.lines = []
+        self.previousPosition = (0, 0)
+
+    def bind_events(self):
+        for event, handler in [
+                (wx.EVT_LEFT_DOWN, self.on_left_down),  # Start drawing
+                (wx.EVT_LEFT_UP, self.on_left_up),  # Stop drawing
+                (wx.EVT_MOTION, self.on_motion),  # Draw
+                (wx.EVT_SIZE, self.on_size),  # Prepare for redraw
+                (wx.EVT_IDLE, self.on_idle),  # Redraw
+                (wx.EVT_PAINT, self.on_paint)  # Refresh
+                ]:
+            self.Bind(event, handler)
+
+    def init_buffer(self):
+        size = self.GetClientSize()
+        self.buffer = wx.EmptyBitmap(size.width, size.height)
+        dc = wx.BufferedDC(None, self.buffer)
+        dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
+        dc.Clear()
+        self.reInitBuffer = False
+
+    def expand_state(self, event):
+        self.drawingState = 1
+        
+    def select_state(self, event):
+        self.drawingState = 0
+        
+    def on_left_down(self, event):
+        if self.drawingState == 0:
+            click_position = event.GetPositionTuple()
+            self.selected_state = None
+            for state in self.states.iterkeys():
+                    state.set_selected(False)
+                    if state.is_within(click_position):
+                        self.selected_state = state
+                        break
+            if self.selected_state is not None:
+                self.selected_state.set_selected(True)
+            self.CaptureMouse()
+        elif self.drawingState == 1:
+            click_position = event.GetPositionTuple()
+        self.redraw()
+        
+    def redraw(self):
+        dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
+        dc.Clear()
+        self.Refresh(False)
+        dc.BeginDrawing()
+        pen = wx.Pen(wx.NamedColour(self.pen_color), self.pen_thickness, wx.SOLID)
+        brush = wx.Brush(self.pen_color, wx.TRANSPARENT)
+        dc.SetPen(pen)
+        dc.SetBrush(brush)
+        for state in self.states.iterkeys():
+            state.draw(dc)
+
+        dc.EndDrawing()
+
+    def on_left_up(self, event):
+        if self.HasCapture():
+            if self.selected_state is not None:
+                self.selected_state.set_selected(False)
+                self.selected_state = None
+            self.ReleaseMouse()
+    
+    def on_motion(self, event):
+        if event.Dragging() and event.LeftIsDown() and self.drawingState == 0\
+                and self.selected_state is not None:
+            self.selected_state.set_position(event.GetPositionTuple())
+            for state in self.states.iterkeys():
+                for arc in state.arcs.keys():
+                    if arc == self.selected_state:
+                        state.arcs[self.selected_state].change_end_pos(event.GetPositionTuple())
+            self.redraw()
+
+    def on_size(self, event):
+        self.reInitBuffer = True
+
+    def on_idle(self, event):
+        if self.reInitBuffer:
+            self.init_buffer()
+            self.redraw()
+
+    def on_paint(self, event):
+        dc = wx.BufferedPaintDC(self, self.buffer)
+
+        
 class InputWind(wx.Frame):
     def __init__(self, controller, parent=None):
         super(InputWind, self).__init__(parent, size=(200, 200))
@@ -111,7 +237,7 @@ class TransWind(wx.Frame):
         self.values.SetValue(self.values.GetValue() + unichr(955))
 
 class RunWind(wx.Frame):
-    def __init__(self, controller, parent=None):
+    def __init__(self, controller, parent):
         super(RunWind, self).__init__(parent, size=(200, 200))
         self.controller = controller
         self.controller.Disable()
@@ -262,3 +388,9 @@ class WarningWind(wx.Frame):
     def on_finish(self, event):
         self.controller.Enable()
         self.Close()
+ 
+class ConvertWind(wx.Frame):
+    def __init__(self, controller, parent):
+        super(ConvertWind, self).__init__(parent, size=(800, 640))
+        
+        self.doodle = DFAWindow(controller.doodle.states, self)
