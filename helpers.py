@@ -53,7 +53,7 @@ class InputWind(wx.Frame):
         self.controller.clicked_state.set_name(new_name)
         i = 0
         for arc in self.controller.clicked_state.arcs.iterkeys():
-            self.controller.clicked_state.set_arcValue(arc, new_name + '->'+arc.state_name + ':' + self.text_boxes[i].GetValue())
+            self.controller.clicked_state.set_arcValue(arc, new_name+'->'+arc.state_name + ':' + self.text_boxes[i].GetValue())
             i += 1
         self.controller.redraw()
         # self.clicked_state.set_name(self.editname.GetValue())
@@ -71,6 +71,7 @@ class TransWind(wx.Frame):
         self.controller.Disable()
         self.panel = wx.Panel(self)
         self.finish_button = wx.Button(self.panel, label="Ok")
+        self.lambda_button = wx.Button(self.panel, label=unichr(955))
         self.lblname = wx.StaticText(self.panel, label="Transition values:")
         self.values = wx.TextCtrl(self.panel, size=(140, -1))
         
@@ -81,6 +82,7 @@ class TransWind(wx.Frame):
         self.sizer.Add(self.lblname, (0, 0))
         self.sizer.Add(self.values, (0, 1))
         self.sizer.Add(self.finish_button, (1, 0))
+        self.sizer.Add(self.lambda_button, (1, 1))
         self.border = wx.BoxSizer()
         self.border.Add(self.sizer, 1, wx.ALL | wx.EXPAND, 5)
 
@@ -89,6 +91,7 @@ class TransWind(wx.Frame):
 
         # Set event handlers
         self.finish_button.Bind(wx.EVT_BUTTON, self.on_finish)
+        self.lambda_button.Bind(wx.EVT_BUTTON, self.on_lambda)
 
     def on_finish(self, event):
         temp_state = filter(lambda x: x.get_position() == self.controller.startPos.get_position(), self.controller.states.iterkeys())
@@ -103,6 +106,9 @@ class TransWind(wx.Frame):
         self.controller.redraw()
         self.controller.Enable()
         self.Close()
+        
+    def on_lambda(self, event):
+        self.values.SetValue(self.values.GetValue() + unichr(955))
 
 class RunWind(wx.Frame):
     def __init__(self, controller, parent=None):
@@ -228,3 +234,31 @@ class SimWind(wx.Frame):
                                          True if self.string_index == len(self.input) - 1 else False))
                 self.controller.doodle.redraw()
                 self.string_index += 1
+                
+class WarningWind(wx.Frame):
+    def __init__(self, controller, text, parent=None):
+        super(WarningWind, self).__init__(parent, size=(200, 200))
+        self.controller = controller
+        self.controller.Disable()
+        self.panel = wx.Panel(self)
+        self.finish_button = wx.Button(self.panel, label="Ok")
+        self.lblname = wx.StaticText(self.panel, label=text)
+    
+        self.windowSizer = wx.BoxSizer()
+        self.windowSizer.Add(self.panel, 1, wx.ALL | wx.EXPAND)
+
+        self.sizer = wx.GridBagSizer(5, 5)
+        self.sizer.Add(self.lblname, (0, 0))
+        self.sizer.Add(self.finish_button, (1, 0))
+        self.border = wx.BoxSizer()
+        self.border.Add(self.sizer, 1, wx.ALL | wx.EXPAND, 5)
+
+        self.panel.SetSizerAndFit(self.border)
+        self.SetSizerAndFit(self.windowSizer)
+
+        # Set event handlers
+        self.finish_button.Bind(wx.EVT_BUTTON, self.on_finish)
+
+    def on_finish(self, event):
+        self.controller.Enable()
+        self.Close()
