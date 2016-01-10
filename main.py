@@ -39,6 +39,13 @@ class DoodleFrame(wx.Frame):
 
         file_item = file_menu.Append(101, 'Run')
         self.Bind(wx.EVT_MENU, self.on_run, file_item)
+        # View:
+        file_menu = wx.Menu()
+        menu_bar.Append(file_menu, '&View')
+
+        file_item = file_menu.Append(wx.NewId(), 'Apply GEM layout algorithm')
+        self.Bind(wx.EVT_MENU, self.on_change_layout, file_item)
+
         # Convert: convert to DFA
         file_menu = wx.Menu()
         menu_bar.Append(file_menu, '&Convert')
@@ -77,6 +84,9 @@ class DoodleFrame(wx.Frame):
     def on_run(self, event):
         self.run_win = RunWind(self)
         self.run_win.Show()
+
+    def on_change_layout(self, event):
+        self.doodle.to_GEM_layout()
 
     def on_convert(self, event):
         for state in self.doodle.states.iterkeys():

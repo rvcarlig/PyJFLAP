@@ -138,3 +138,6 @@ class State:
     def add_new_arc_value(self, arc, value):
         #self.arcs[arc] = self.arcs[arc] + ", " + value
         self.arcs[arc].add_new_arc_value(value)
+
+    def get_degree(self):
+        return len(self.arcs)

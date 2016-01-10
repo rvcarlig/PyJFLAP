@@ -1,8 +1,11 @@
 from enum import Enum
 from State import State, StateType
 from helpers import InputWind, TransWind
+from math import sqrt
+from copy import deepcopy
 import wx
 import json
+import random
 
 
 class EditorState(Enum):
@@ -24,7 +27,6 @@ class DoodleWindow(wx.Window):
         self.currentState = 0
         self.reusableStateNames = []
         self.stateNames = {}
-        self.arcs = []
 
         self.init_drawing()
         self.make_menu()
@@ -36,12 +38,10 @@ class DoodleWindow(wx.Window):
 
     def clear(self):
         self.states.clear()
-        self.arcs = []
         self.stateNames.clear()
         self.reusableStateNames = []
         self.currentState = 0
         assert len(self.states) == 0
-        assert len(self.arcs) == 0
         assert len(self.stateNames) == 0
         assert len(self.reusableStateNames) == 0
         self.redraw()
@@ -290,6 +290,75 @@ class DoodleWindow(wx.Window):
                     add_arc(self.get_state_by_name(self.states, arc['end']), arc['values'])
             self.redraw()
 
+    def to_GEM_layout(self):
+        OPTIMAL_EDGE_LENGTH = 10.0
+        GRAVITATIONAL_CONSTANT = 1.0 / 16.0
+
+        r_max = 120 * len(self.states)
+        t_global = TMIN + 1
+
+        # barycenter of the graph
+        records = {}
+        c = [0, 0]
+        for state in self.states:
+            r = Record()
+            r.position = state.position
+            c[0] += r.position[0]
+            c[1] += r.position[1]
+            records[state] = r
+
+        new_states = deepcopy(self.states)
+        for i in range(r_max):
+            # Choose a vertex V to update.
+            if len(new_states) == 0:
+                new_states = deepcopy(self.states)
+            index = random.randint(0, len(new_states)-1)
+            nstate = self.get_state_by_name(self.states, new_states.keys()[index].state_name)
+            record = records[nstate]
+            new_states.pop(new_states.keys()[index])
+            pos = nstate.position
+            # Compute the impulse of V.
+            theta = nstate.get_degree()
+            theta *= 1.0 + theta / 2.0
+            p = [
+                (c[0] / len(self.states) - nstate.position[0]) * GRAVITATIONAL_CONSTANT * theta,
+                (c[1] / len(self.states) - nstate.position[1]) * GRAVITATIONAL_CONSTANT * theta,
+            ]
+            # Random disturbance
+            p[0] += random.uniform(0.0, 1.0) * 10.0 - 5.0
+            p[1] += random.uniform(0.0, 1.0) * 10.0 - 5.0
+            # Forces exerted by other nodes
+            for other_state in self.states:
+                if other_state == nstate:
+                    continue
+                delta = [
+                    pos[0] - other_state.position[0],
+                    pos[1] - other_state.position[1]
+                ]
+                d2 = delta[0]*delta[0] + delta[1]*delta[1]
+                o2 = OPTIMAL_EDGE_LENGTH * OPTIMAL_EDGE_LENGTH
+                if delta[0] != 0.0 or delta[1] != 0.0:
+                    p[0] += delta[0] * o2 / d2
+                    p[1] += delta[1] * o2 / d2
+                if nstate.contains_arc(other_state):
+                    p[0] -= delta[0] * d2 / (o2 * theta)
+                    p[1] -= delta[1] * d2 / (o2 * theta)
+
+            # Adjust the position and temperature
+            if p[0] != 0.0 or p[1] != 0.0:
+                absp = sqrt(abs(p[0]*p[0] + p[1]*p[1]))
+                p[0] *= record.temperature / absp
+                p[1] *= record.temperature / absp
+
+                # update position
+                nstate.set_position([pos[0] + p[0], pos[1]+p[1]])
+                # update barycenter
+                c[0] += p[0]
+                c[1] += p[1]
+
+        self.redraw()
+
+
     @staticmethod
     def get_state_by_name(seq, value):
         for el in seq:
@@ -312,3 +381,14 @@ class DoodleWindow(wx.Window):
                         if state.arcs[arc].check_same_value(state.arcs[arc2]):
                             return True
         return False
+
+TMAX = 256
+TMIN = 3
+
+
+class Record:
+    def __init__(self):
+        self.position = []
+        self.lastImpulse = []
+        self.temperature = TMIN
+        self.skew = 0.0
