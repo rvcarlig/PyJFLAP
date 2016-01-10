@@ -60,3 +60,17 @@ class Transition:
             if (self.valuePos[1]-10 < pos[1] < self.valuePos[1]+10):
                 return True
         return False
+    
+    def is_lambda_trans(self):
+        lambda_ch = unichr(955)
+        if lambda_ch in self.value:
+            return True
+        return False
+    
+    def check_same_value(self, arc):
+        trans1_values = self.value[self.value.index(':') + 1:].split(',')
+        trans2_values = arc.value[arc.value.find(':') + 1:].split(',')
+        for value in trans1_values:
+            if value in trans2_values:
+                return True
+        return False
