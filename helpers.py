@@ -221,7 +221,7 @@ class InputWind(wx.Frame):
         self.controller.clicked_state.set_name(new_name)
         i = 0
         for arc in self.controller.clicked_state.arcs.iterkeys():
-            self.controller.clicked_state.set_arcValue(arc, new_name+'->'+arc.state_name + ':' +
+            self.controller.clicked_state.set_arc_value(arc, new_name+'->'+arc.state_name + ':' +
                                                        self.text_boxes[i].GetValue())
             i += 1
         self.controller.redraw()
@@ -229,6 +229,7 @@ class InputWind(wx.Frame):
     def on_finish(self, event):
         self.controller.Enable()
         self.Close()
+
 
 class TransWind(wx.Frame):
     def __init__(self, controller, parent=None):
@@ -281,7 +282,7 @@ class TransWind(wx.Frame):
 
 
 class RunWind(wx.Frame):
-    def __init__(self, controller, parent):
+    def __init__(self, controller, parent=None):
         super(RunWind, self).__init__(parent, size=(200, 200))
         self.controller = controller
         self.controller.Disable()

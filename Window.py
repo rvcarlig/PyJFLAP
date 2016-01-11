@@ -1,6 +1,7 @@
 from enum import Enum
 from State import State, StateType
 from helpers import InputWind, TransWind
+from Transition import Transition
 from math import sqrt
 from copy import deepcopy
 import wx
@@ -97,13 +98,13 @@ class DoodleWindow(wx.Window):
         file_item = self.menu.Append(wx.NewId(), 'End State', kind=wx.ITEM_CHECK)
         self.Bind(wx.EVT_MENU, self.make_end_state, file_item)
 
-        file_item = self.menu.Append(wx.NewId(), 'Edit State', kind = wx.ITEM_NORMAL)
+        file_item = self.menu.Append(wx.NewId(), 'Edit State', kind=wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.change_state_name, file_item)
 
     def change_state_name(self, event):
         if self.clicked_state is not None:
-            input = InputWind(self)
-            input.Show()
+            input_window = InputWind(self)
+            input_window.Show()
 
     def make_start_state(self, event):
         if self.clicked_state is not None:
@@ -138,14 +139,9 @@ class DoodleWindow(wx.Window):
                 for state in self.states.iterkeys():
                     if state.is_within(click_position):
                         self.endPos = state
-                        input = TransWind(self)
-                        input.Show()
+                        trans_window = TransWind(self)
+                        trans_window.Show()
                         break
-                               
-                #temp_state = filter(lambda x: x.get_position() == self.startPos.get_position(), self.states.iterkeys())
-                #temp_state[0].add_arc(self.endPos, self.values)
-                #self.endPos = None
-                #self.startPos = None
         elif self.drawingState == EditorState.Delete:
             click_position = event.GetPositionTuple()
             for state, stateNb in self.states.iteritems():
@@ -258,7 +254,6 @@ class DoodleWindow(wx.Window):
                                             'radius': state.radius,
                                             'selected': state.selected,
                                             'position': state.position,
-                                            'up': state.up,
                                             'key': key_state
                                         }
                                         for state, key_state in self.states.items()
@@ -268,10 +263,12 @@ class DoodleWindow(wx.Window):
                                         {
                                             'start': str(state),
                                             'end': str(key),
-                                            'values': values
+                                            'value': transition.value,
+                                            'value_position': transition.valuePos,
+                                            'up': transition.up
                                         }
                                         for state in self.states
-                                        for key, values in state.arcs.items()
+                                        for key, transition in state.arcs.items()
                                     ]
                             }, fp=outfile, indent=4, sort_keys=False)
 
@@ -282,15 +279,23 @@ class DoodleWindow(wx.Window):
                 data = json.load(infile)
             for state in data["states"]:
                 new_state = State(position=state["position"], state_name=state["state_name"],
-                                  radius=state["radius"], selected=state["selected"], up=state["up"])
+                                  radius=state["radius"], selected=state["selected"])
                 self.states[new_state] = state["key"]
             for arc in data['arcs']:
-
-                self.get_state_by_name(self.states, arc['start']).\
-                    add_arc(self.get_state_by_name(self.states, arc['end']), arc['values'])
+                start_state = self.get_state_by_name(self.states, arc['start'])
+                end_state = self.get_state_by_name(self.states, arc['end'])
+                start_state.add_transition(end_state,
+                                           Transition(start_position=start_state.position,
+                                                      end_position=end_state.position,
+                                                      value=arc['value'],
+                                                      same_state=start_state.position == end_state.position,
+                                                      is_up=arc['up'],
+                                                      values_pos=arc['value_position'])
+                                           )
             self.redraw()
 
-    def to_GEM_layout(self):
+    # noinspection PyPep8Naming
+    def to_gem_layout(self):
         OPTIMAL_EDGE_LENGTH = 10.0
         GRAVITATIONAL_CONSTANT = 1.0 / 16.0
 
@@ -358,7 +363,6 @@ class DoodleWindow(wx.Window):
 
         self.redraw()
 
-
     @staticmethod
     def get_state_by_name(seq, value):
         for el in seq:
@@ -366,7 +370,7 @@ class DoodleWindow(wx.Window):
                 return el
                 
     def check_nfa(self):
-        #check each state for nondeterminism
+        # check each state for nondeterminism
         for state in self.states.iterkeys():
             # check for lambda
             for trans in state.arcs.itervalues():

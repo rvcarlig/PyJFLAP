@@ -86,7 +86,7 @@ class DoodleFrame(wx.Frame):
         self.run_win.Show()
 
     def on_change_layout(self, event):
-        self.doodle.to_GEM_layout()
+        self.doodle.to_gem_layout()
 
     def on_convert(self, event):
         for state in self.doodle.states.iterkeys():
@@ -125,7 +125,7 @@ class DoodleFrame(wx.Frame):
             else:
                 complete = False
 
-        if current_state.type == StateType.End and complete == True:
+        if current_state.type == StateType.End and complete is True:
             return "Input accepted!"
         else:
             return "Input rejected!"

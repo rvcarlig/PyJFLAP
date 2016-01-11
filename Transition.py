@@ -1,18 +1,17 @@
-import wx
-#from State import State, StateType
-import collections
 
 
 class Transition:
 
-    def __init__(self, start_position, end_position, value, same_state, is_up):
+    def __init__(self, start_position, end_position, value, same_state, is_up, values_pos=None):
     
+        if values_pos is None:
+            values_pos = [0, 0]
         self.start_position = start_position
         self.end_position = end_position        
         self.value = value
         self.same_state = same_state
         self.up = is_up
-        self.valuePos = [0, 0]
+        self.valuePos = values_pos
         self.update_value_pos()
         
     def add_new_arc_value(self, value):
@@ -44,7 +43,7 @@ class Transition:
         return self.value
         
     def get_value_pos(self):
-        return (self.valuePos[0], self.valuePos[1])
+        return self.valuePos[0], self.valuePos[1]
         
     def get_start_pos(self):
         return self.start_position
@@ -53,11 +52,11 @@ class Transition:
         return self.end_position
         
     def is_self_trans(self):
-        return (self.start_position == self.end_position)
+        return self.start_position == self.end_position
         
     def is_clicked(self, pos):
-        if (self.valuePos[0] < pos[0] < self.valuePos[0]+50):
-            if (self.valuePos[1]-10 < pos[1] < self.valuePos[1]+10):
+        if self.valuePos[0] < pos[0] < self.valuePos[0]+50:
+            if self.valuePos[1]-10 < pos[1] < self.valuePos[1]+10:
                 return True
         return False
     
