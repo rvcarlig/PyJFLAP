@@ -67,7 +67,7 @@ class DoodleFrame(wx.Frame):
 
     def on_open(self, event):
         open_file_dialog = wx.FileDialog(self, "Open", "", "",
-                                         "Python files (*.py)|*.py",
+                                         "PyJFLAP files (*.pyjff)|*.pyjff",
                                          wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         open_file_dialog.ShowModal()
         self.doodle.load(open_file_dialog.GetPath())
@@ -75,7 +75,7 @@ class DoodleFrame(wx.Frame):
 
     def on_save(self, event):
         save_file_dialog = wx.FileDialog(self, "Save As", "", "",
-                                         "Python files (*.py)|*.py",
+                                         "PyJFLAP files (*.pyjff)|*.pyjff",
                                          wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         save_file_dialog.ShowModal()
         self.doodle.save(save_file_dialog.GetPath())
@@ -125,7 +125,7 @@ class DoodleFrame(wx.Frame):
             else:
                 complete = False
 
-        if current_state.type == StateType.End and complete is True:
+        if current_state.is_end_state() and complete is True:
             return "Input accepted!"
         else:
             return "Input rejected!"
@@ -142,7 +142,7 @@ class DoodleFrame(wx.Frame):
 
         if self.complete:
             if is_last:
-                if self.current_state.type == StateType.End:
+                if self.current_state.is_end_state():
                     self.current_state.ok_input = True
                     self.finish = True
                     return "Input accepted!"                

@@ -92,13 +92,13 @@ class DoodleWindow(wx.Window):
 
     def make_menu(self):
         self.menu = wx.Menu()
-        file_item = self.menu.Append(wx.NewId(), 'Start State', kind=wx.ITEM_CHECK)
+        file_item = self.menu.Append(300, 'Start State', kind=wx.ITEM_CHECK)
         self.Bind(wx.EVT_MENU, self.make_start_state, file_item)
 
-        file_item = self.menu.Append(wx.NewId(), 'End State', kind=wx.ITEM_CHECK)
+        file_item = self.menu.Append(301, 'End State', kind=wx.ITEM_CHECK)
         self.Bind(wx.EVT_MENU, self.make_end_state, file_item)
 
-        file_item = self.menu.Append(wx.NewId(), 'Edit State', kind=wx.ITEM_NORMAL)
+        file_item = self.menu.Append(303, 'Edit State', kind=wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.change_state_name, file_item)
 
     def change_state_name(self, event):
@@ -108,6 +108,8 @@ class DoodleWindow(wx.Window):
 
     def make_start_state(self, event):
         if self.clicked_state is not None:
+            if self.start_state is not None and self.clicked_state is not self.start_state:
+                self.start_state.set_type(StateType.Start)
             self.clicked_state.set_type(StateType.Start)
             self.start_state = self.clicked_state
             self.redraw()
@@ -147,7 +149,7 @@ class DoodleWindow(wx.Window):
             for state, stateNb in self.states.iteritems():
                     if state.is_within(click_position):
                         for state2 in self.states.keys():
-                            if state2.contains_arc(state):                                
+                            if state2.contains_arc(state):
                                 self.reusableStateNames.append(self.states[state2])
                                 state2.remove_arc(state)
                         del self.states[state]
@@ -199,6 +201,8 @@ class DoodleWindow(wx.Window):
                 self.clicked_state = state
                 break
         if self.clicked_state is not None:
+            self.menu.Check(300, self.clicked_state.is_start_state())
+            self.menu.Check(301, self.clicked_state.is_end_state())
             self.PopupMenu(self.menu)
 
     def on_motion(self, event):
@@ -279,7 +283,7 @@ class DoodleWindow(wx.Window):
                 data = json.load(infile)
             for state in data["states"]:
                 new_state = State(position=state["position"], state_name=state["state_name"],
-                                  radius=state["radius"], selected=state["selected"])
+                                  radius=state["radius"], selected=state["selected"], state_type=int(state['type']))
                 self.states[new_state] = state["key"]
             for arc in data['arcs']:
                 start_state = self.get_state_by_name(self.states, arc['start'])
@@ -317,7 +321,7 @@ class DoodleWindow(wx.Window):
             # Choose a vertex V to update.
             if len(new_states) == 0:
                 new_states = deepcopy(self.states)
-            index = random.randint(0, len(new_states)-1)
+            index = random.randint(0, len(new_states) - 1)
             nstate = self.get_state_by_name(self.states, new_states.keys()[index].state_name)
             record = records[nstate]
             new_states.pop(new_states.keys()[index])
@@ -340,7 +344,7 @@ class DoodleWindow(wx.Window):
                     pos[0] - other_state.position[0],
                     pos[1] - other_state.position[1]
                 ]
-                d2 = delta[0]*delta[0] + delta[1]*delta[1]
+                d2 = delta[0] * delta[0] + delta[1] * delta[1]
                 o2 = OPTIMAL_EDGE_LENGTH * OPTIMAL_EDGE_LENGTH
                 if delta[0] != 0.0 or delta[1] != 0.0:
                     p[0] += delta[0] * o2 / d2
@@ -351,12 +355,12 @@ class DoodleWindow(wx.Window):
 
             # Adjust the position and temperature
             if p[0] != 0.0 or p[1] != 0.0:
-                absp = sqrt(abs(p[0]*p[0] + p[1]*p[1]))
+                absp = sqrt(abs(p[0] * p[0] + p[1] * p[1]))
                 p[0] *= record.temperature / absp
                 p[1] *= record.temperature / absp
 
                 # update position
-                nstate.set_position([pos[0] + p[0], pos[1]+p[1]])
+                nstate.set_position([pos[0] + p[0], pos[1] + p[1]])
                 # update barycenter
                 c[0] += p[0]
                 c[1] += p[1]
@@ -368,7 +372,7 @@ class DoodleWindow(wx.Window):
         for el in seq:
             if el.state_name == value:
                 return el
-                
+
     def check_nfa(self):
         # check each state for nondeterminism
         for state in self.states.iterkeys():
@@ -381,7 +385,7 @@ class DoodleWindow(wx.Window):
                 for arc2 in state.arcs.iterkeys():
                     if arc == arc2:
                         continue
-                    else: 
+                    else:
                         if state.arcs[arc].check_same_value(state.arcs[arc2]):
                             return True
         return False

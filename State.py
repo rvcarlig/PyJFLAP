@@ -15,9 +15,9 @@ class StateType(Enum):
 
 class State:
 
-    def __init__(self, position, state_name, radius=50, selected=False):
+    def __init__(self, position, state_name, radius=50, selected=False, state_type=StateType.Normal.value):
         self.position = position
-        self.type = StateType.Normal
+        self.type = state_type
         self.radius = radius
         self.arcs = {}
         self.selected = selected
@@ -30,15 +30,16 @@ class State:
         return self.state_name
 
     def set_type(self, state_type):
-        self.type = state_type
+        self.type ^= state_type.value
 
     def get_type(self):
-        if self.type == StateType.Start:
-            return 1
-        elif self.type == StateType.End:
-            return 2
-        else: 
-            return 0
+        return self.type
+
+    def is_end_state(self):
+        return self.type >> 1 & 1 == 1
+
+    def is_start_state(self):
+        return self.type & 1 == 1
 
     def add_transition(self, state, transition):
         self.arcs[state] = transition
@@ -68,13 +69,10 @@ class State:
         if self.ok_input:
             brush = wx.Brush('Green', wx.SOLID)
         dc.SetBrush(brush)
-        if self.type == StateType.Normal:
-            dc.DrawCircle(self.position[0], self.position[1], self.radius)
-        elif self.type == StateType.End:
-            dc.DrawCircle(self.position[0], self.position[1], self.radius)
+        dc.DrawCircle(self.position[0], self.position[1], self.radius)
+        if self.is_end_state():
             dc.DrawCircle(self.position[0], self.position[1], self.radius - 5)
-        else:
-            dc.DrawCircle(self.position[0], self.position[1], self.radius)
+        if self.is_start_state():
             dc.DrawLine(self.position[0]-self.radius, self.position[1],
                         self.position[0]-2*self.radius, self.position[1]-self.radius)
             dc.DrawLine(self.position[0]-2*self.radius, self.position[1]-self.radius,
