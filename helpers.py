@@ -107,7 +107,8 @@ class DFAWindow(wx.Window):
                         else:
                             if len(state_in_nfa.arcs[arc_to_state].get_value()) > 1:
                                 trans = state_in_nfa.arcs[arc_to_state].get_value().split(':', 1) 
-                                trans_values = state_in_nfa.arcs[arc_to_state].get_value()[state_in_nfa.arcs[arc_to_state].get_value().index(':') + 1:].split(',')
+                                trans_values = state_in_nfa.arcs[arc_to_state].get_value()[
+                                               state_in_nfa.arcs[arc_to_state].get_value().index(':') + 1:].split(',')
                                 new_state = copy.deepcopy(arc_to_state)
                                 new_state.arcs.clear()
                                 self.states[new_state] = self.nfa_states[arc_to_state]
@@ -190,7 +191,8 @@ class InputWind(wx.Frame):
             label_name = self.controller.clicked_state.state_name+'->'+arc.state_name
             self.sizer.Add(wx.StaticText(self.panel, label=label_name+":"), (i, 0))
             new_text_box = wx.TextCtrl(self.panel, size=(140, -1))
-            new_text_box.SetValue(self.controller.clicked_state.arcs[arc].get_value()[self.controller.clicked_state.arcs[arc].get_value().index(':') + 1:])
+            new_text_box.SetValue(self.controller.clicked_state.arcs[arc].get_value()
+                                  [self.controller.clicked_state.arcs[arc].get_value().index(':') + 1:])
             self.text_boxes.append(new_text_box)
             self.sizer.Add(new_text_box, (i, 1))
             i += 1
@@ -212,18 +214,17 @@ class InputWind(wx.Frame):
         state_nb = int(new_name[new_name.index('q') + 1:])
         if state_nb in self.controller.states.values():
             return
-        self.controller.reusableStateNames.append(int(self.controller.clicked_state.state_name[self.controller.clicked_state.state_name.index('q') + 1:]))
+        self.controller.reusableStateNames.append(int(self.controller.clicked_state.state_name
+                                                      [self.controller.clicked_state.state_name.index('q') + 1:]))
         self.controller.states[self.controller.clicked_state] = state_nb
         
         self.controller.clicked_state.set_name(new_name)
         i = 0
         for arc in self.controller.clicked_state.arcs.iterkeys():
-            self.controller.clicked_state.set_arcValue(arc, new_name+'->'+arc.state_name + ':' + self.text_boxes[i].GetValue())
+            self.controller.clicked_state.set_arcValue(arc, new_name+'->'+arc.state_name + ':' +
+                                                       self.text_boxes[i].GetValue())
             i += 1
         self.controller.redraw()
-        # self.clicked_state.set_name(self.editname.GetValue())
-        # self.panel.Close()
-        # self.redraw()
 
     def on_finish(self, event):
         self.controller.Enable()
@@ -239,6 +240,7 @@ class TransWind(wx.Frame):
         self.lambda_button = wx.Button(self.panel, label=unichr(955))
         self.lblname = wx.StaticText(self.panel, label="Transition values:")
         self.values = wx.TextCtrl(self.panel, size=(140, -1))
+        self.values.SetValue(unichr(955))
         
         self.windowSizer = wx.BoxSizer()
         self.windowSizer.Add(self.panel, 1, wx.ALL | wx.EXPAND)
@@ -259,13 +261,15 @@ class TransWind(wx.Frame):
         self.lambda_button.Bind(wx.EVT_BUTTON, self.on_lambda)
 
     def on_finish(self, event):
-        temp_state = filter(lambda x: x.get_position() == self.controller.startPos.get_position(), self.controller.states.iterkeys())
-        if self.controller.endPos in temp_state[0].arcs.iterkeys():
-            #temp_state[0].add_new_arc_value(self.controller.endPos, self.values.GetValue())
-            temp_state[0].add_new_arc_value(self.controller.endPos, self.values.GetValue())
+        start_state = filter(lambda x: x.get_position() == self.controller.startPos.get_position(),
+                             self.controller.states.iterkeys())
+        end_state = filter(lambda x: x.get_position() == self.controller.endPos.get_position(),
+                           self.controller.states.iterkeys())
+        if self.controller.endPos in start_state[0].arcs.iterkeys():
+            start_state[0].add_new_arc_value(self.controller.endPos, self.values.GetValue())
         else:
-            #temp_state[0].add_arc(self.controller.endPos, self.values.GetValue())
-            temp_state[0].add_arc(self.controller.endPos, self.controller.startPos.state_name+'->'+temp_state[0].state_name+":"+self.values.GetValue())
+            start_state[0].add_arc(self.controller.endPos, self.controller.startPos.state_name+'->' +
+                                   end_state[0].state_name+":"+self.values.GetValue())
         self.controller.endPos = None
         self.controller.startPos = None
         self.controller.redraw()
@@ -274,6 +278,7 @@ class TransWind(wx.Frame):
         
     def on_lambda(self, event):
         self.values.SetValue(self.values.GetValue() + unichr(955))
+
 
 class RunWind(wx.Frame):
     def __init__(self, controller, parent):
@@ -338,12 +343,10 @@ class SimWind(wx.Frame):
         self.button_sizer = wx.GridBagSizer()
         self.string_index = 0
         self.result = wx.StaticText(self.panel)        
-        if self.controller.doodle.start_state == None:
+        if self.controller.doodle.start_state is None:
             self.result.SetLabel("No Start State")
         elif self.input == "":
             self.result.SetLabel("No Input")
-            
-
         self.font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
 
         self.windowSizer = wx.BoxSizer()
@@ -386,7 +389,7 @@ class SimWind(wx.Frame):
         self.Close()
 
     def on_next(self, event):
-        if self.controller.doodle.start_state != None and self.controller.finish == False:
+        if self.controller.doodle.start_state is not None and self.controller.finish is False:
             if self.string_index > 0:
                 self.input_values[self.string_index - 1].SetLabel(self.input_values[self.string_index - 1].GetLabel())
                 self.input_values[self.string_index - 1].SetBackgroundColour(self.defaultColor)
@@ -399,7 +402,8 @@ class SimWind(wx.Frame):
                                          True if self.string_index == len(self.input) - 1 else False))
                 self.controller.doodle.redraw()
                 self.string_index += 1
-                
+
+
 class WarningWind(wx.Frame):
     def __init__(self, controller, text, parent=None):
         super(WarningWind, self).__init__(parent, size=(200, 200))
@@ -427,7 +431,8 @@ class WarningWind(wx.Frame):
     def on_finish(self, event):
         self.controller.Enable()
         self.Close()
- 
+
+
 class ConvertWind(wx.Frame):
     def __init__(self, controller, parent):
         super(ConvertWind, self).__init__(parent, size=(800, 640))
